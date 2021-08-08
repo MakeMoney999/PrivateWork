@@ -384,10 +384,11 @@ class rewrite():
     def __init__(self):
         self.special_things_a=["小胶带","复印纸","胶带","宽胶带"]
         self.special_things_b=["纸箱","擦桌布"]  #都是5个一组
+
 # 纸箱_组（5个）': '个', '（1组=5个）
 # 擦桌布_包（5条）': '条', '（包=条）
 
-
+# 三代电池_个
 # 荧光笔_个': '盒', '（型号：33111，6个=1盒）
 # 小胶带_卷': '筒', '（6卷=1筒）
 # 复印纸_包': '箱', '（5包=1箱）
@@ -400,17 +401,17 @@ class rewrite():
         for i in range(3, form1.max_row):#迭代表1，统计特殊商品的总数量
             if model==0:
                 if name == form1.cell(row=i,column=5).value: #没有特殊型号,直接计算累加
-                    print ("222222")
+                    #print ("222222")
                     count+=form1.cell(row=i,column=8).value
             else:
                 if name == form1.cell(row=i,column=5).value and str(model) in str(form1.cell(row=i,column=4).value):
-                    print ("3333")
+                    #print ("3333")
                     count+=form1.cell(row=i,column=8).value
         if count%x !=0:
-            print ("name=",name,"数量",count,"型号",model,"需要手填进入表2")
+            print ("name=",name,"总数量",count,"型号",model,"需要手填进项明细")
             return 0
         else:
-            print ("name=",name,"数量",count,"model",model)
+            print ("name=",name,"总数量",count,"型号",model)
             return count/x
 
 
@@ -423,7 +424,11 @@ class rewrite():
         if form1.cell(row=row,column=5).value =="双面胶" and form1.cell(row=row,column=4).value =="30401":
             things_count=0
         elif form1.cell(row=row,column=5).value =="双面胶" and form1.cell(row=row,column=4).value =="30403":
-            things_count=0       
+            things_count=0
+        elif form1.cell(row=row,column=5).value =="三代电池" and form1.cell(row=row,column=4).value =="5号":
+            things_count=0
+        elif form1.cell(row=row,column=5).value =="三代电池" and form1.cell(row=row,column=4).value =="7号":
+            things_count=0    
         elif form1.cell(row=row,column=5).value in self.special_things_a:
             #print ("spec_all",things_count)
             things_count=0
@@ -435,6 +440,7 @@ class rewrite():
             return things_count
 
     def rewrite_Form2_normal(self,form2,row,things_count):  #将普通商品的数量写进表2中
+        red_fill = PatternFill("solid", fgColor="FF0000")
         form2_count=form2.cell(row=row, column=10).value
         #print ("22222222,things_count")
         #print ("form2_count_a",form2_count)
@@ -445,22 +451,22 @@ class rewrite():
             things_count=0
            
         #print ("22222222",things_count)    
-        form2_count-= int(things_count)
+        #form2_count-= int(things_count) 做减法
         form2.cell(row=row, column=10).value= form2_count
+        form2.cell(row=row, column=10).fill=red_fill
         #print ("form2_count",form2_count,"form1_count",things_count)
         return form2_count
 
-    def rewrite_Form2_special(self,form2,name,things_count,model=0):  #需要1个查询函数，将特殊商品重写进表2中
-        for i in range(3, form2.max_row):
-            if model==0:
-                if name==form2.cell(row=i, column=1).value:  #只找第一个
-                    form2.cell(row=i, column=10).value= things_count
-                    break
-            else:
-                if name==form2.cell(row=i, column=1).value and str(model) in str(form2.cell(row=i, column=2).value):
-                    form2.cell(row=i, column=10).value= things_count
-                    break
-        return
+    # def rewrite_Form2_special(self,form2,row,things_count,model=0):  #需要1个查询函数，将特殊商品重写进表2中
+    #     if model==0:
+    #         if name==form2.cell(row=i, column=1).value:  #只找第一个
+    #             form2.cell(row=i, column=10).value= things_count
+    #             break
+    #     else:
+    #         if name==form2.cell(row=i, column=1).value and str(model) in str(form2.cell(row=i, column=2).value):
+    #             form2.cell(row=i, column=10).value= things_count
+    #             break
+    #     return
 
     def rewrite_Form1(self,form1,form2,row_form1,row_form2):#将表2的名称复写进表1
         red_fill = PatternFill("solid", fgColor="FF0000")
@@ -473,27 +479,38 @@ class rewrite():
 
 
     def main(self,matched_result,form1,form2): 
-        for form1_row,form2_row in matched_result.items():
-            res=self.rewrite_Form2_normal(form2,row=form2_row,things_count=self.get_Form1_count(form1,form1_row))  #将表1数量，根据查询结果，写进表1
-            self.rewrite_Form1(form1,form2,row_form1=form1_row,row_form2=form2_row)
-            #print (form1_row,form2_row,res)
+
         #############开始全局计算特殊商品的总数量，并复写form2
-        #yin_guang_bi=self.statistics_a(form1,"荧光笔",6,"33111")  #33111的型号量词是正确的，不用单独考虑了
-        xiao_jiao_dai=self.statistics_a(form1,"小胶带",6,"30029")
+        xiao_jiao_dai=self.statistics_a(form1,"小胶带",6,"30029")  
         fu_yin_zhi=self.statistics_a(form1,"复印纸",5)
         jiao_dai=self.statistics_a(form1,"胶带",6)
         kuai_jiao_dai=self.statistics_a(form1,"宽胶带",6)
         shuang_mian_jiao_30401=self.statistics_a(form1,"双面胶",24,"30401")
         shuang_mian_jiao_30403=self.statistics_a(form1,"双面胶",12,"30403")
-        ##############计算完成，复写form2
-        #self.rewrite_Form2_special(form2,"荧光笔",yin_guang_bi,model="33111")  #33111的型号是对应的，不用单独考虑了
-        self.rewrite_Form2_special(form2,"小胶带",xiao_jiao_dai)
-        self.rewrite_Form2_special(form2,"复印纸",fu_yin_zhi)
-        self.rewrite_Form2_special(form2,"胶带",jiao_dai)
-        self.rewrite_Form2_special(form2,"宽胶带",kuai_jiao_dai)
-        self.rewrite_Form2_special(form2,"双面胶",shuang_mian_jiao_30401)
-        self.rewrite_Form2_special(form2,"双面胶",shuang_mian_jiao_30403)
+        dian_chi_5=self.statistics_a(form1,"三代电池",40,"5号")
+        dian_chi_7=self.statistics_a(form1,"三代电池",40,"7号")
 
+
+        for form1_res,form2_row in matched_result.items(): #{('办公转椅', '', 5): 952, ('电线收纳扣', 'TLXD-A', 14): 538}
+            res=self.rewrite_Form2_normal(form2,row=form2_row,things_count=self.get_Form1_count(form1,form1_res[2]))  #将表1数量，根据查询结果，写进表1
+            self.rewrite_Form1(form1,form2,row_form1=form1_res[2],row_form2=form2_row)
+            #复写form2，从结果中查到表2对应的行数，并复写
+            if form1_res[0] == "小胶带" and form1_res[1] == "30029":
+                form2.cell(row=form2_row, column=10).value= xiao_jiao_dai
+            if form1_res[0] == "复印纸":
+                form2.cell(row=form2_row, column=10).value= fu_yin_zhi
+            if form1_res[0] == "胶带":
+                form2.cell(row=form2_row, column=10).value= jiao_dai
+            if form1_res[0] == "宽胶带":
+                form2.cell(row=form2_row, column=10).value= kuai_jiao_dai
+            if form1_res[0] == "双面胶" and form1_res[1] == "30401":
+                form2.cell(row=form2_row, column=10).value= shuang_mian_jiao_30401
+            if form1_res[0] == "双面胶" and form1_res[1] == "30403":
+                form2.cell(row=form2_row, column=10).value= shuang_mian_jiao_30403
+            if form1_res[0] == "三代电池" and form1_res[1] == "5号":
+                form2.cell(row=form2_row, column=10).value= dian_chi_5
+            if form1_res[0] == "三代电池" and form1_res[1] == "7号":
+                form2.cell(row=form2_row, column=10).value= dian_chi_7
 
 if __name__=='__main__':
     FP=FormProcessor()
@@ -515,10 +532,10 @@ if __name__=='__main__':
     FP.CheckMatchResult(FP.Form1)
     #**************************
     #写form1和fomr2
-    # rewrite().main(result,FP.Form1,FP.Form2)
-    # FP.FormSave(FP.wb2,"NewForm2.xlsx")
-    # FP.FormSave(FP.wb1,"Result_Form2.xlsx")
-    print('result=',result)
+    rewrite().main(result,FP.Form1,FP.Form2)
+    FP.FormSave(FP.wb2,"NewForm2.xlsx")
+    FP.FormSave(FP.wb1,"Result_Form2.xlsx")
+    #print('result=',result)
     #print('UnmatchUnit=',UnmatchList)
 
 
