@@ -77,7 +77,7 @@ class FormProcessor():
                 if (OriginData['Model'] in form2_model) and (OriginData['Brand'] in form2_name) and (OriginData['Name'] in form2_name):  # 判断表1的型号与表2是否匹配
                     count += 1
                     form1.cell(row=i1, column=11).value = i2
-                    result[OriginData['Name'],i1]=i2
+                    result[OriginData['Name'],OriginData['Model'],i1]=i2
                     break
 
         ''' Second Loop: Step1 '''
@@ -117,7 +117,7 @@ class FormProcessor():
                 if (OriginData['Brand'] in form2_name) and (OriginData['Model'] in form2_name) and (OriginData['Name'] in form2_name):
                     count += 1
                     form1.cell(row=i1, column=12).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Third Loop: Step1 '''
@@ -157,7 +157,7 @@ class FormProcessor():
                 if (OriginData['Model'] in form2_name) and (OriginData['Name'] in form2_name):
                     count += 1
                     form1.cell(row=i1, column=13).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Forth Loop: Step1 '''
@@ -197,7 +197,7 @@ class FormProcessor():
                 if (OriginData['Brand'] in form2_name) and (OriginData['Model'] in form2_name) and OriginData['Brand']!='' and OriginData['Model']!='' :
                     count += 1
                     form1.cell(row=i1, column=14).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Fifth Loop: Step1 '''
@@ -237,7 +237,7 @@ class FormProcessor():
                 if ListIn(OriginData['Model_sub_and'],form2_name_rip,'and',[]) and ((OriginData['Name'] in form2_name_rip) or (OriginData['Brand'] in form2_name_rip)):
                     count += 1
                     form1.cell(row=i1, column=16).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Sixth Loop:Step1 '''
@@ -276,7 +276,7 @@ class FormProcessor():
                 if (ListIn(OriginData['Model_sub_or'],form2_model,'or',blackwords) or ListIn(OriginData['Model_sub_or'],form2_name_rip,'or',blackwords)) and (OriginData['Name'] in form2_name_rip):
                     count += 1
                     form1.cell(row=i1, column=17).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Seventh Loop: Step1 '''
@@ -315,7 +315,7 @@ class FormProcessor():
                 if OriginData['Name'] in form2_name_rip and OriginData['Model']=='' and OriginData['Brand']=='':
                     count += 1
                     form1.cell(row=i1, column=18).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Eighth Loop: Step1 '''
@@ -354,7 +354,7 @@ class FormProcessor():
                 if (OriginData['Name'] in form2_name_rip) and (OriginData['Brand'] in form2_name_rip):
                     count += 1
                     form1.cell(row=i1, column=19).value = i2
-                    result[OriginData['Name'],i1] = i2
+                    result[OriginData['Name'],OriginData['Model'],i1] = i2
                     break
 
         ''' Nineth Loop: Step1 '''
@@ -402,7 +402,7 @@ class FormProcessor():
                         # print('MatchKey=',MatchKey,'form2Model=',form2_model)
                         count += 1
                         form1.cell(row=i1, column=15).value = i2
-                        result[OriginData['Name'],i1] = i2
+                        result[OriginData['Name'],OriginData['Model'],i1] = i2
                         break
 
         total=form1.max_row-2
