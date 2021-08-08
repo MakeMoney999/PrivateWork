@@ -17,6 +17,11 @@ Brand_OnlyCheckName=['迪欧']
 class FormProcessor():
     wb1 = Workbook()
     wb2 = Workbook()
+    Result={}
+    MatchCount=0
+    OriginData={}
+    TargetData={}
+
 
     ''' 备份表 '''
     def BackupFile(self,OriginFile,TargetFile):
@@ -36,380 +41,135 @@ class FormProcessor():
 
     ''' 寻找表1表2的关联 '''
     def CheckForm(self,form1,form2):
-        OriginData = {}
-        count = 0
-        result ={}
-
-        ''' First Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1,i1)==True:
-                continue
-            if form1.cell(row=i1, column=3).value!=None:
-                OriginData['Brand']=str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand']=''
-            if form1.cell(row=i1, column=4).value!=None:
-                OriginData['Model']=str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model']=''
-            OriginData['Name']=str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and']=SplitWord(OriginData['Model'],SplitSign_And)
-            OriginData['Model_sub_or']=SplitWord(OriginData['Model'],SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3,form2.max_row):   #检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2,column=1).value!=None:
-                    form2_name=str(form2.cell(row=i2,column=1).value).upper()
-                else:
-                    form2_name=''
-                if form2.cell(row=i2,column=2).value!=None:
-                    form2_model=str(form2.cell(row=i2,column=2).value).upper()
-                else:
-                    form2_model=''
-                form2_name_rip=''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-                ''' 开始检索 '''
-                # 如果'型号'能匹配成功，则用'品牌+名称'匹配库存名称
-                if (OriginData['Model'] in form2_model) and (OriginData['Brand'] in form2_name) and (OriginData['Name'] in form2_name):  # 判断表1的型号与表2是否匹配
-                    count += 1
-                    form1.cell(row=i1, column=11).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1]=i2
-                    break
-
-        ''' Second Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-
-                # 如果'品牌+型号+名称'与库存名称能匹配成功
-                if (OriginData['Brand'] in form2_name) and (OriginData['Model'] in form2_name) and (OriginData['Name'] in form2_name):
-                    count += 1
-                    form1.cell(row=i1, column=12).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Third Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-
-                # 如果'型号+名称'与库存名称能匹配成功
-                if (OriginData['Model'] in form2_name) and (OriginData['Name'] in form2_name):
-                    count += 1
-                    form1.cell(row=i1, column=13).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Forth Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-
-                # 如果'品牌+型号'与库存名称能匹配成功
-                if (OriginData['Brand'] in form2_name) and (OriginData['Model'] in form2_name) and OriginData['Brand']!='' and OriginData['Model']!='' :
-                    count += 1
-                    form1.cell(row=i1, column=14).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Fifth Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-
-                # 拆分Model，进行组合匹配
-                if ListIn(OriginData['Model_sub_and'],form2_name_rip,'and',[]) and ((OriginData['Name'] in form2_name_rip) or (OriginData['Brand'] in form2_name_rip)):
-                    count += 1
-                    form1.cell(row=i1, column=16).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Sixth Loop:Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-                # 拆分Model，进行模糊匹配
-                if (ListIn(OriginData['Model_sub_or'],form2_model,'or',blackwords) or ListIn(OriginData['Model_sub_or'],form2_name_rip,'or',blackwords)) and (OriginData['Name'] in form2_name_rip):
-                    count += 1
-                    form1.cell(row=i1, column=17).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Seventh Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-                # 型号和品牌为空时，只匹配名称
-                if OriginData['Name'] in form2_name_rip and OriginData['Model']=='' and OriginData['Brand']=='':
-                    count += 1
-                    form1.cell(row=i1, column=18).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Eighth Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-                # 只匹配名称+品牌
-                if (OriginData['Name'] in form2_name_rip) and (OriginData['Brand'] in form2_name_rip):
-                    count += 1
-                    form1.cell(row=i1, column=19).value = i2
-                    result[OriginData['Name'],OriginData['Model'],i1] = i2
-                    break
-
-        ''' Nineth Loop: Step1 '''
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
-            ''' 准备表1数据 '''
-            if MatchedCheck(form1, i1) == True:
-                continue
-            if form1.cell(row=i1, column=3).value != None:
-                OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
-            else:
-                OriginData['Brand'] = ''
-            if form1.cell(row=i1, column=4).value != None:
-                OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
-            else:
-                OriginData['Model'] = ''
-            OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
-            OriginData['Model_sub_and'] = SplitWord(OriginData['Model'], SplitSign_And)
-            OriginData['Model_sub_or'] = SplitWord(OriginData['Model'], SplitSign_Or)
-
-            ''' Step2 '''
-            for i2 in range(3, form2.max_row):  # 检索表2的每一行
-                ''' 准备表2数据 '''
-                if form2.cell(row=i2, column=1).value != None:
-                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
-                else:
-                    form2_name = ''
-                if form2.cell(row=i2, column=2).value != None:
-                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
-                else:
-                    form2_model = ''
-                form2_name_rip = ''
-                for char in range(len(form2_name)):
-                    if form2_name[char] != ' ':
-                        form2_name_rip += form2_name[char]
-
-                # 硒鼓专门匹配
-                if OriginData['Name'] == '硒鼓':
-                    MatchKey = ''
-                    for key in Cartridges:
-                        for x in OriginData['Model_sub_or']:
-                            if x in Cartridges[key]:
-                                MatchKey = key
-                                break
-                    if (MatchKey != '') and (MatchKey in form2_model):
-                        # print('MatchKey=',MatchKey,'form2Model=',form2_model)
-                        count += 1
-                        form1.cell(row=i1, column=15).value = i2
-                        result[OriginData['Name'],OriginData['Model'],i1] = i2
-                        break
-
+        for i in range(1,10):
+            self.CheckFormByLoop(form1,form2,i)
         total=form1.max_row-2
         print('Total data:',total)
-        print('Totally matched Count:', count)
-        print('Match rate:',count/total)
-        return result
+        print('Totally matched Count:', self.MatchCount)
+        print('Match rate:',self.MatchCount/total)
+        return self.Result
+
+    def CheckFormByLoop(self,form1,form2,MethodID):
+        for i1 in range(3, form1.max_row):  # 检索表1的每一行
+            ''' 准备表1数据 '''
+            if MatchedCheck(form1, i1) == True:
+                continue
+            if form1.cell(row=i1, column=3).value != None:
+                self.OriginData['Brand'] = str(form1.cell(row=i1, column=3).value).upper()
+            else:
+                self.OriginData['Brand'] = ''
+            if form1.cell(row=i1, column=4).value != None:
+                self.OriginData['Model'] = str(form1.cell(row=i1, column=4).value).upper()
+            else:
+                self.OriginData['Model'] = ''
+            self.OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
+            self.OriginData['Model_sub_and'] = SplitWord(self.OriginData['Model'], SplitSign_And)
+            self.OriginData['Model_sub_or'] = SplitWord(self.OriginData['Model'], SplitSign_Or)
+
+            ''' Step2 '''
+            for i2 in range(3, form2.max_row):  # 检索表2的每一行
+                ''' 准备表2数据 '''
+                if form2.cell(row=i2, column=1).value != None:
+                    form2_name = str(form2.cell(row=i2, column=1).value).upper()
+                else:
+                    form2_name = ''
+                if form2.cell(row=i2, column=2).value != None:
+                    form2_model = str(form2.cell(row=i2, column=2).value).upper()
+                else:
+                    form2_model = ''
+                form2_name_rip = ''
+                for char in range(len(form2_name)):
+                    if form2_name[char] != ' ':
+                        form2_name_rip += form2_name[char]
+
+                self.TargetData = {'Name': form2_name, 'RipName': form2_name_rip, 'Model': form2_model}
+                self.CheckFormByMethod(form1, MethodID, i1, i2)
+
+    def CheckFormByMethod(self,form1,MethodID,row1,row2):
+        if MethodID == 1:
+        # 如果'型号'能匹配成功，则用'品牌+名称'匹配库存名称
+            if (self.OriginData['Model'] in self.TargetData['Model']) and (self.OriginData['Brand'] in self.TargetData['RipName']) and (
+                    self.OriginData['Name'] in self.TargetData['RipName']):  # 判断表1的型号与表2是否匹配
+                self.MatchCount += 1
+                form1.cell(row=row1, column=11).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 2:
+            # 如果'品牌+型号+名称'与库存名称能匹配成功
+            if (self.OriginData['Brand'] in self.TargetData['RipName']) and (self.OriginData['Model'] in self.TargetData['RipName']) and (
+                    self.OriginData['Name'] in self.TargetData['RipName']):
+                self.MatchCount += 1
+                form1.cell(row=row1, column=12).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 3:
+        # 如果'型号+名称'与库存名称能匹配成功
+            if (self.OriginData['Model'] in self.TargetData['RipName']) and (self.OriginData['Name'] in self.TargetData['RipName']):
+                self.MatchCount += 1
+                form1.cell(row=row1, column=13).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 4:
+        # 如果'品牌+型号'与库存名称能匹配成功
+            if (self.OriginData['Brand'] in self.TargetData['RipName']) and (self.OriginData['Model'] in self.TargetData['RipName']) and self.OriginData[
+            'Brand'] != '' and self.OriginData['Model'] != '':
+                self.MatchCount += 1
+                form1.cell(row=row1, column=14).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 5:
+        # 拆分Model，进行组合匹配
+            if ListIn(self.OriginData['Model_sub_and'], self.TargetData['RipName'], 'and', []) and (
+                (self.OriginData['Name'] in self.TargetData['RipName']) or (self.OriginData['Brand'] in self.TargetData['RipName'])):
+                self.MatchCount += 1
+                form1.cell(row=row1, column=15).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 6:
+        # 拆分Model，进行模糊匹配
+            if (ListIn(self.OriginData['Model_sub_or'], self.TargetData['Model'], 'or', blackwords) or ListIn(self.OriginData['Model_sub_or'],
+            self.TargetData['RipName'], 'or', blackwords)) and (self.OriginData['Name'] in self.TargetData['RipName']):
+                self.MatchCount += 1
+                form1.cell(row=row1, column=16).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 7:
+        # 型号和品牌为空时，只匹配名称
+            if self.OriginData['Name'] in self.TargetData['RipName'] and self.OriginData['Model'] == '' and self.OriginData['Brand'] == '':
+                self.MatchCount += 1
+                form1.cell(row=row1, column=17).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 8:
+        # 只匹配名称+品牌
+            if (self.OriginData['Name'] in self.TargetData['RipName']) and (self.OriginData['Brand'] in self.TargetData['RipName']):
+                self.MatchCount += 1
+                form1.cell(row=row1, column=18).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return
+
+        if MethodID == 9:
+        # 硒鼓专门匹配
+            if self.OriginData['Name'] == '硒鼓':
+                MatchKey = ''
+                for key in Cartridges:
+                    for x in self.OriginData['Model_sub_or']:
+                        if x in Cartridges[key]:
+                            MatchKey = key
+                            break
+                if (MatchKey != '') and (MatchKey in self.TargetData['Model']):
+                    # print('MatchKey=',MatchKey,'form2Model=',form2_model)
+                    self.MatchCount += 1
+                    form1.cell(row=row1, column=19).value = row2
+                    self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                    return
 
     def FormSave(self,wb,TargetFile):
         Path=FileDirectory+TargetFile
