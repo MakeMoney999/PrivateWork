@@ -83,7 +83,8 @@ class FormProcessor():
                         form2_name_rip += form2_name[char]
 
                 self.TargetData = {'Name': form2_name, 'RipName': form2_name_rip, 'Model': form2_model}
-                self.CheckFormByMethod(form1, MethodID, i1, i2)
+                if self.CheckFormByMethod(form1, MethodID, i1, i2)==True:
+                    break
 
     def CheckFormByMethod(self,form1,MethodID,row1,row2):
         if MethodID == 1:
@@ -93,7 +94,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 2:
             # 如果'品牌+型号+名称'与库存名称能匹配成功
@@ -102,7 +105,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=12).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 3:
         # 如果'型号+名称'与库存名称能匹配成功
@@ -110,7 +115,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=13).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 4:
         # 如果'品牌+型号'与库存名称能匹配成功
@@ -119,7 +126,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=14).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 5:
         # 拆分Model，进行组合匹配
@@ -128,7 +137,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=15).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 6:
         # 拆分Model，进行模糊匹配
@@ -137,7 +148,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=16).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 7:
         # 型号和品牌为空时，只匹配名称
@@ -145,7 +158,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=17).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 8:
         # 只匹配名称+品牌
@@ -153,7 +168,9 @@ class FormProcessor():
                 self.MatchCount += 1
                 form1.cell(row=row1, column=18).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return
+                return True
+            else:
+                return False
 
         if MethodID == 9:
         # 硒鼓专门匹配
@@ -169,7 +186,9 @@ class FormProcessor():
                     self.MatchCount += 1
                     form1.cell(row=row1, column=19).value = row2
                     self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                    return
+                    return True
+                else:
+                    return False
 
     def FormSave(self,wb,TargetFile):
         Path=FileDirectory+TargetFile
@@ -475,8 +494,6 @@ class rewrite():
         self.rewrite_Form2_special(form2,"双面胶",shuang_mian_jiao_30401)
         self.rewrite_Form2_special(form2,"双面胶",shuang_mian_jiao_30403)
 
-
-        
 
 if __name__=='__main__':
     FP=FormProcessor()
