@@ -41,7 +41,7 @@ class FormProcessor():
 
     ''' 寻找表1表2的关联 '''
     def CheckForm(self,form1,form2):
-        for i in range(1,10):
+        for i in range(1,9):
             self.CheckFormByLoop(form1,form2,i)
         total=form1.max_row-2
         print('Total data:',total)
@@ -153,26 +153,6 @@ class FormProcessor():
                 return False
 
         if MethodID == 7:
-        # 型号和品牌为空时，只匹配名称
-            if self.OriginData['Name'] in self.TargetData['RipName'] and self.OriginData['Model'] == '' and self.OriginData['Brand'] == '':
-                self.MatchCount += 1
-                form1.cell(row=row1, column=17).value = row2
-                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return True
-            else:
-                return False
-
-        if MethodID == 8:
-        # 只匹配名称+品牌
-            if (self.OriginData['Name'] in self.TargetData['RipName']) and (self.OriginData['Brand'] in self.TargetData['RipName']):
-                self.MatchCount += 1
-                form1.cell(row=row1, column=18).value = row2
-                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
-                return True
-            else:
-                return False
-
-        if MethodID == 9:
         # 硒鼓专门匹配
             if self.OriginData['Name'] == '硒鼓':
                 MatchKey = ''
@@ -184,11 +164,21 @@ class FormProcessor():
                 if (MatchKey != '') and (MatchKey in self.TargetData['Model']):
                     # print('MatchKey=',MatchKey,'form2Model=',form2_model)
                     self.MatchCount += 1
-                    form1.cell(row=row1, column=19).value = row2
+                    form1.cell(row=row1, column=17).value = row2
                     self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                     return True
                 else:
                     return False
+
+        if MethodID == 8:
+        # 只匹配名称+品牌
+            if (self.OriginData['Name'] in self.TargetData['RipName']) and (self.OriginData['Brand'] in self.TargetData['RipName']):
+                self.MatchCount += 1
+                form1.cell(row=row1, column=18).value = row2
+                self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
+                return True
+            else:
+                return False
 
     def FormSave(self,wb,TargetFile):
         Path=FileDirectory+TargetFile
