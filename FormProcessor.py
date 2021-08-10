@@ -2,6 +2,9 @@ import os,sys,time
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import  PatternFill
+from PyQt5.Qt import *
+from PyQt5.QtGui import *
+import FormUI
 
 FileDirectory='D:\\PrivateWork\\'    #文件路径
 Form1Name=r'机关2021.3.15-2021.6.9from刘陈(1).xlsx'
@@ -14,13 +17,16 @@ SplitSign_And=[',','，',' ','；',';']
 SplitSign_Or=['/']
 Brand_OnlyCheckName=['迪欧']
 
-class FormProcessor():
+class FormProcessor(FormUI.Ui_MainWindow):
     wb1 = Workbook()
     wb2 = Workbook()
     Result={}
     MatchCount=0
     OriginData={}
     TargetData={}
+    Form1Path=''
+    Form2Path=''
+    Message=''
 
 
     ''' 备份表 '''
@@ -47,6 +53,12 @@ class FormProcessor():
         print('Total data:',total)
         print('Totally matched Count:', self.MatchCount)
         print('Match rate:',self.MatchCount/total)
+        txt='总共有'+str(total)+'条数据'
+        self.InfoShow(txt)
+        txt='总共匹配成功'+str(self.MatchCount)+'条数据'
+        self.InfoShow(txt)
+        txt='匹配率为：'+str(round(self.MatchCount/total,4)*100)+'%'
+        self.InfoShow(txt)
         return self.Result
 
     def CheckFormByLoop(self,form1,form2,MethodID):
@@ -181,7 +193,7 @@ class FormProcessor():
                 return False
 
     def FormSave(self,wb,TargetFile):
-        Path=FileDirectory+TargetFile
+        Path=TargetFile
         wb.save(Path)
 
     def CheckFormOnce(self,form1,form2):
@@ -307,6 +319,8 @@ class FormProcessor():
                 if form.cell(row=i, column=j).value!=None:
                     count+=1
         print('Real matched count:',count)
+        txt='实际匹配到'+str(count)+'行'
+        self.InfoShow(txt)
 
     def CheckUnit(self,form1,form2):
         count=0
@@ -316,7 +330,7 @@ class FormProcessor():
                 if form1.cell(row=i, column=j).value != None:
                     form2_row=form1.cell(row=i, column=j).value
                     form1_unit=form1.cell(row=i, column=6).value
-                    form2_unit=form2.cell(row=form2_row,column=3).value
+                    form2_unit=form2.cell(row=form2_row,column=3).valuess
                     if form1_unit==form2_unit:
                         form1.cell(row=i, column=21).value = 'unit matched'
                     else:
@@ -330,6 +344,92 @@ class FormProcessor():
                             print("new unit of same name!!!!  " + name1 + ':'+ UnitList[name1] +'/'+name2)
         print('Unmatched count:',count)
         return UnitList
+
+    def init(self):
+        imgName='./ChineseOil.png'
+        png = QPixmap(imgName)
+        self.label.setPixmap(png)
+
+    def InfoShow(self,text):
+        self.Message += str(text)
+        self.Message += '\n'
+        self.InfoShow_plainTextEdit.setPlainText(self.Message)
+
+    def listenEvent(self):
+        self.Loadform1_pushButton.clicked.connect(self.LoadForm1)
+        self.Loadform2_pushButton.clicked.connect(self.LoadForm2)
+        self.Saveform_pushButton.clicked.connect(self.SaveForm)
+        self.Analyst_pushButton.clicked.connect(self.Analyst)
+
+
+    def LoadForm1(self):
+        try:
+            Form1File=QFileDialog.getOpenFileName()
+            print(Form1File)
+            self.Loadform1_lineEdit.setText(Form1File[0])
+            self.Form1Path=Form1File[0]
+            self.wb1 = self.GetFile(self.Form1Path)
+            self.Form1=self.GetForm(self.wb1 , '3月-6月（机关汇总表）')
+            self.statusbar.showMessage("采购表加载成功")
+            self.InfoShow("采购表加载成功")
+        except:
+            self.statusbar.showMessage("采购表加载失败，请重新加载")
+            self.InfoShow("采购表加载失败，请重新加载")
+
+    def LoadForm2(self):
+        try:
+            Form2File=QFileDialog.getOpenFileName()
+            print(Form2File)
+            self.Loadform2_lineEdit.setText(Form2File[0])
+            self.Form2Path = Form2File[0]
+            self.wb2 = self.GetFile(self.Form2Path)
+            self.Form2=self.GetForm(self.wb2 , 'Sheet1')
+            self.statusbar.showMessage("库存表加载成功")
+            self.InfoShow("库存表加载成功")
+        except:
+            self.statusbar.showMessage("库存表加载失败，请重新加载")
+            self.InfoShow("库存表加载失败，请重新加载")
+
+    def SaveForm(self):
+        if self.Form1Path=='' or self.Form2Path=='':
+            return
+        NewFormDir = QFileDialog.getExistingDirectory()
+        print(NewFormDir)
+        name=''
+        for i in range(0,len(self.Form1Path)-5):
+            if self.Form1Path[i]=='/':
+                name=''
+            else:
+                name+=self.Form1Path[i]
+        self.newForm1=name+'_new.xlsx'
+        print(self.newForm1)
+        self.NewForm1Path = NewFormDir + '/' + self.newForm1
+        name = ''
+        for i in range(0, len(self.Form2Path) - 5):
+            if self.Form2Path[i] == '/':
+                name = ''
+            else:
+                name += self.Form2Path[i]
+        self.newForm2 = name + '_new.xlsx'
+        print(self.newForm2)
+        self.NewForm2Path = NewFormDir + '/' + self.newForm2
+        self.FormSave(self.wb1,self.NewForm1Path)
+        self.FormSave(self.wb2,self.NewForm2Path)
+        self.InfoShow(self.NewForm1Path)
+        self.InfoShow(self.NewForm2Path)
+        self.statusbar.showMessage("新表单保存成功")
+        self.InfoShow("新表单保存成功")
+
+    def Analyst(self):
+        self.statusbar.showMessage("分析中，请稍后...")
+        self.InfoShow("分析中，请稍后...")
+        try:
+            self.CheckForm(self.Form1, self.Form2)
+            self.statusbar.showMessage("分析成功，请保存文件")
+            self.InfoShow("分析成功，请保存文件")
+        except:
+            self.statusbar.showMessage("分析失败，请联系王阳")
+            self.InfoShow("分析失败")
 
 def SplitWord(content,symbols):
     result = []
@@ -502,31 +602,45 @@ class rewrite():
             if form1_res[0] == "三代电池" and form1_res[1] == "7号":
                 form2.cell(row=form2_row, column=10).value= dian_chi_7
 
-if __name__=='__main__':
+def RunFormProcessUI():
+    app = QApplication(sys.argv)
+    Window = QMainWindow()
+
     FP=FormProcessor()
-    FP.BackupFile(Form1Path, 'Form1.xlsx')
-    FP.BackupFile(Form2Path, 'Form2.xlsx')
-    Form1Path = FileDirectory + 'Form1.xlsx'
-    Form2Path = FileDirectory + 'Form2.xlsx'
-    print(Form1Path)
-    print(Form2Path)
-    time.sleep(1)
-    FP.wb1 = FP.GetFile(Form1Path)
-    FP.Form1=FP.GetForm(FP.wb1 , '3月-6月（机关汇总表）')
-    FP.wb2 = FP.GetFile(Form2Path)
-    FP.Form2=FP.GetForm(FP.wb2,'Sheet1')
-    result=FP.CheckForm(FP.Form1, FP.Form2)
-    # result=FP.CheckFormOnce(FP.Form1,FP.Form2)
-    UnmatchList=FP.CheckUnit(FP.Form1,FP.Form2)
-    FP.FormSave(FP.wb1,"NewForm1.xlsx")
-    FP.CheckMatchResult(FP.Form1)
-    #**************************
-    #写form1和fomr2
-    rewrite().main(result,FP.Form1,FP.Form2)
-    FP.FormSave(FP.wb2,"NewForm2.xlsx")
-    FP.FormSave(FP.wb1,"Result_Form2.xlsx")
-    #print('result=',result)
-    #print('UnmatchUnit=',UnmatchList)
+
+    FP.setupUi(Window)
+    FP.init()
+    Window.setWindowTitle('中国石油采购表单管理器')
+    Window.show()
+    FP.listenEvent()
+    sys.exit(app.exec_())
+
+if __name__=='__main__':
+    RunFormProcessUI()
+    # FP=FormProcessor()
+    # FP.BackupFile(Form1Path, 'Form1.xlsx')
+    # FP.BackupFile(Form2Path, 'Form2.xlsx')
+    # Form1Path = FileDirectory + 'Form1.xlsx'
+    # Form2Path = FileDirectory + 'Form2.xlsx'
+    # print(Form1Path)
+    # print(Form2Path)
+    # time.sleep(1)
+    # FP.wb1 = FP.GetFile(Form1Path)
+    # FP.Form1=FP.GetForm(FP.wb1 , '3月-6月（机关汇总表）')
+    # FP.wb2 = FP.GetFile(Form2Path)
+    # FP.Form2=FP.GetForm(FP.wb2,'Sheet1')
+    # result=FP.CheckForm(FP.Form1, FP.Form2)
+    # # result=FP.CheckFormOnce(FP.Form1,FP.Form2)
+    # UnmatchList=FP.CheckUnit(FP.Form1,FP.Form2)
+    # FP.FormSave(FP.wb1,"NewForm1.xlsx")
+    # FP.CheckMatchResult(FP.Form1)
+    # #**************************
+    # #写form1和fomr2
+    # rewrite().main(result,FP.Form1,FP.Form2)
+    # FP.FormSave(FP.wb2,"NewForm2.xlsx")
+    # FP.FormSave(FP.wb1,"Result_Form2.xlsx")
+    # #print('result=',result)
+    # #print('UnmatchUnit=',UnmatchList)
 
 
 
