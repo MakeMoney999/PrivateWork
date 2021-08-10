@@ -421,13 +421,16 @@ class FormProcessor(FormUI.Ui_MainWindow):
         self.InfoShow("新表单保存成功")
 
     def Analyst(self):
+
         self.statusbar.showMessage("分析中，请稍后...")
         self.InfoShow("分析中，请稍后...")
         try:
-            self.CheckForm(self.Form1, self.Form2)
+            result=self.CheckForm(self.Form1, self.Form2)
+            rewrite().main(result,self.Form1,self.Form2)
             self.statusbar.showMessage("分析成功，请保存文件")
             self.InfoShow("分析成功，请保存文件")
-        except:
+        except Exception as e:
+            print (e)
             self.statusbar.showMessage("分析失败，请联系王阳")
             self.InfoShow("分析失败")
 
@@ -498,6 +501,9 @@ class rewrite():
                     #print ("3333")
                     count+=form1.cell(row=i,column=8).value
         if count%x !=0:
+            # txt="name="+name+",总数量:"+str(count)+",型号:",model,",需要手填进项明细"
+            # FormProcessor().statusbar.showMessage(txt)
+            # FormProcessor().InfoShow(txt)
             print ("name=",name,"总数量",count,"型号",model,"需要手填进项明细")
             return 0
         else:
@@ -535,13 +541,19 @@ class rewrite():
         #print ("22222222,things_count")
         #print ("form2_count_a",form2_count)
         #print (type(form2_count))
-        if type(form2_count)!=type(1):
+        if form2_count == None: #如果是空就置位0
+            #print("form2_count",row,type(form2_count),form2_count)
             form2_count = 0
-        if type(things_count)!=type(1):
-            things_count=0
+
+        if things_count == None:
+            #print("form2_count",row,type(things_count),things_count)
+            things_count = 0
+        
            
         #print ("22222222",things_count)    
-        #form2_count-= int(things_count) 做减法
+        form2_count+= int(things_count) #出库数量做加法
+        # form2.cell(row=row, column=10).value= form2_count
+        # form2.cell(row=row, column=10).fill=red_fill
         form2.cell(row=row, column=10).value= form2_count
         form2.cell(row=row, column=10).fill=red_fill
         #print ("form2_count",form2_count,"form1_count",things_count)
