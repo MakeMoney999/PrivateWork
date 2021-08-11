@@ -426,7 +426,11 @@ class FormProcessor(FormUI.Ui_MainWindow):
         self.InfoShow("分析中，请稍后...")
         try:
             result=self.CheckForm(self.Form1, self.Form2)
-            rewrite().main(result,self.Form1,self.Form2)
+            a=rewrite().main(result,self.Form1,self.Form2)
+            for m in a: 
+                """打印需要手动写入的特殊输出结果"""
+                self.statusbar.showMessage(m)
+                self.InfoShow(m)
             self.statusbar.showMessage("分析成功，请保存文件")
             self.InfoShow("分析成功，请保存文件")
         except Exception as e:
@@ -489,10 +493,10 @@ class rewrite():
 # 宽胶带_卷': '筒', '（6卷=1筒）
 #双面胶_个': '袋', '（型号：30400/30411/30412，袋=卷；型号：30401,24卷=1袋;型号:30403,12卷=1袋，）
 
-    def statistics_a(self,form1,name,x,model="0"): #计算表1中的数量关系,参数x为换算关系
+    def statistics_a(self,form1,name,x,model="0"): #计算表1中的数量关系,参数x为换算关系 ,函数有2个回调，第一个是数量，第二个是描述
         count =0
         for i in range(3, form1.max_row):#迭代表1，统计特殊商品的总数量
-            if model==0:
+            if model=="0":
                 if name == form1.cell(row=i,column=5).value: #没有特殊型号,直接计算累加
                     #print ("222222")
                     count+=form1.cell(row=i,column=8).value
@@ -501,14 +505,16 @@ class rewrite():
                     #print ("3333")
                     count+=form1.cell(row=i,column=8).value
         if count%x !=0:
-            # txt="name="+name+",总数量:"+str(count)+",型号:",model,",需要手填进项明细"
+            txt="名称为:"+name+",总数量:"+str(count)+",型号:,"+model+",需要手填进项明细"
+            #print (type(txt),txt)
             # FormProcessor().statusbar.showMessage(txt)
             # FormProcessor().InfoShow(txt)
-            print ("name=",name,"总数量",count,"型号",model,"需要手填进项明细")
-            return 0
+            #print ("name=",name,"总数量",count,"型号",model,"需要手填进项明细")
+            return 0,txt
         else:
-            print ("name=",name,"总数量",count,"型号",model)
-            return count/x
+            txt="名称为:"+name+",总数量:"+str(count)+",型号:,"+model+",被正常写入"
+            #print ("name=",name,"总数量",count,"型号",model)
+            return count/x,txt
 
 
 
@@ -541,11 +547,11 @@ class rewrite():
         #print ("22222222,things_count")
         #print ("form2_count_a",form2_count)
         #print (type(form2_count))
-        if form2_count == None: #如果是空就置位0
+        if form2_count != type(1): #如果是空就置位0
             #print("form2_count",row,type(form2_count),form2_count)
             form2_count = 0
 
-        if things_count == None:
+        if things_count != type(1):
             #print("form2_count",row,type(things_count),things_count)
             things_count = 0
         
@@ -581,16 +587,26 @@ class rewrite():
 
 
     def main(self,matched_result,form1,form2): 
+        Message_arr=[]
 
         #############开始全局计算特殊商品的总数量，并复写form2
-        xiao_jiao_dai=self.statistics_a(form1,"小胶带",6,"30029")  
-        fu_yin_zhi=self.statistics_a(form1,"复印纸",5)
-        jiao_dai=self.statistics_a(form1,"胶带",6)
-        kuai_jiao_dai=self.statistics_a(form1,"宽胶带",6)
-        shuang_mian_jiao_30401=self.statistics_a(form1,"双面胶",24,"30401")
-        shuang_mian_jiao_30403=self.statistics_a(form1,"双面胶",12,"30403")
-        dian_chi_5=self.statistics_a(form1,"三代电池",40,"5号")
-        dian_chi_7=self.statistics_a(form1,"三代电池",40,"7号")
+        xiao_jiao_dai,string_xiao_jiao_dai=self.statistics_a(form1,"小胶带",6,"30029")  
+        fu_yin_zhi,string_fu_yin_zhi=self.statistics_a(form1,"复印纸",5)
+        jiao_dai,string_jiao_dai=self.statistics_a(form1,"胶带",6)
+        kuai_jiao_dai,string_kuai_jiao_dai=self.statistics_a(form1,"宽胶带",6)
+        shuang_mian_jiao_30401,string_shuang_mian_jiao_30401=self.statistics_a(form1,"双面胶",24,"30401")
+        shuang_mian_jiao_30403,string_shuang_mian_jiao_30403=self.statistics_a(form1,"双面胶",12,"30403")
+        dian_chi_5,string_dian_chi_5=self.statistics_a(form1,"三代电池",40,"5号")
+        dian_chi_7,string_dian_chi_7=self.statistics_a(form1,"三代电池",40,"7号")
+
+        Message_arr.append(string_xiao_jiao_dai)
+        Message_arr.append(string_fu_yin_zhi)
+        Message_arr.append(string_jiao_dai)
+        Message_arr.append(string_kuai_jiao_dai)
+        Message_arr.append(string_shuang_mian_jiao_30401)
+        Message_arr.append(string_shuang_mian_jiao_30403)
+        Message_arr.append(string_dian_chi_5)
+        Message_arr.append(string_dian_chi_7)
 
 
         for form1_res,form2_row in matched_result.items(): #{('办公转椅', '', 5): 952, ('电线收纳扣', 'TLXD-A', 14): 538}
@@ -613,6 +629,7 @@ class rewrite():
                 form2.cell(row=form2_row, column=10).value= dian_chi_5
             if form1_res[0] == "三代电池" and form1_res[1] == "7号":
                 form2.cell(row=form2_row, column=10).value= dian_chi_7
+        return Message_arr
 
 def RunFormProcessUI():
     app = QApplication(sys.argv)
