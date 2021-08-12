@@ -1,4 +1,4 @@
-import os,sys,time
+import os,sys,time,threading
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import  PatternFill
@@ -393,40 +393,48 @@ class FormProcessor(FormUI.Ui_MainWindow):
     def SaveForm(self):
         if self.Form1Path=='' or self.Form2Path=='':
             return
-        NewFormDir = QFileDialog.getExistingDirectory()
-        print(NewFormDir)
-        name=''
-        for i in range(0,len(self.Form1Path)-5):
-            if self.Form1Path[i]=='/':
-                name=''
-            else:
-                name+=self.Form1Path[i]
-        self.newForm1=name+'_new.xlsx'
-        print(self.newForm1)
-        self.NewForm1Path = NewFormDir + '/' + self.newForm1
-        name = ''
-        for i in range(0, len(self.Form2Path) - 5):
-            if self.Form2Path[i] == '/':
-                name = ''
-            else:
-                name += self.Form2Path[i]
-        self.newForm2 = name + '_new.xlsx'
-        print(self.newForm2)
-        self.NewForm2Path = NewFormDir + '/' + self.newForm2
-        self.FormSave(self.wb1,self.NewForm1Path)
-        self.FormSave(self.wb2,self.NewForm2Path)
-        self.InfoShow(self.NewForm1Path)
-        self.InfoShow(self.NewForm2Path)
-        self.statusbar.showMessage("新表单保存成功")
-        self.InfoShow("新表单保存成功")
+        try:
+            NewFormDir = QFileDialog.getExistingDirectory()
+            print(NewFormDir)
+            name=''
+            for i in range(0,len(self.Form1Path)-5):
+                if self.Form1Path[i]=='/':
+                    name=''
+                else:
+                    name+=self.Form1Path[i]
+            self.newForm1=name+'_new.xlsx'
+            print(self.newForm1)
+            self.NewForm1Path = NewFormDir + '/' + self.newForm1
+            name = ''
+            for i in range(0, len(self.Form2Path) - 5):
+                if self.Form2Path[i] == '/':
+                    name = ''
+                else:
+                    name += self.Form2Path[i]
+            self.newForm2 = name + '_new.xlsx'
+            print(self.newForm2)
+            self.NewForm2Path = NewFormDir + '/' + self.newForm2
+            self.FormSave(self.wb1,self.NewForm1Path)
+            self.FormSave(self.wb2,self.NewForm2Path)
+            self.InfoShow(self.NewForm1Path)
+            self.InfoShow(self.NewForm2Path)
+            self.statusbar.showMessage("新表单保存成功")
+            self.InfoShow("新表单保存成功")
+        except:
+            self.statusbar.showMessage("新表单保存失败，请重新保存")
+            self.InfoShow("新表单保存失败，请重新保存")
 
     def Analyst(self):
-
+        self.Saveform_pushButton.setDisabled(True)
+        self.Loadform1_pushButton.setDisabled(True)
+        self.Loadform2_pushButton.setDisabled(True)
+        self.Analyst_pushButton.setDisabled(True)
         self.statusbar.showMessage("分析中，请稍后...")
         self.InfoShow("分析中，请稍后...")
         try:
-            result=self.CheckForm(self.Form1, self.Form2)
-            a=rewrite().main(result,self.Form1,self.Form2)
+            thread=threading.Thread(target=self.CheckForm,args=(self.Form1,self.Form2))
+            # result=self.CheckForm(self.Form1, self.Form2)
+            a=rewrite().main(self.Result,self.Form1,self.Form2)
             for m in a: 
                 """打印需要手动写入的特殊输出结果"""
                 self.statusbar.showMessage(m)
@@ -437,6 +445,10 @@ class FormProcessor(FormUI.Ui_MainWindow):
             print (e)
             self.statusbar.showMessage("分析失败，请联系王阳")
             self.InfoShow("分析失败")
+        self.Saveform_pushButton.setEnabled(True)
+        self.Loadform1_pushButton.setEnabled(True)
+        self.Loadform2_pushButton.setEnabled(True)
+        self.Analyst_pushButton.setEnabled(True)
 
 def SplitWord(content,symbols):
     result = []
