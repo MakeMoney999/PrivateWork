@@ -1,4 +1,4 @@
-import os,sys,time,threading
+import os,sys,time,threading,json
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import  PatternFill
@@ -26,6 +26,17 @@ class FormProcessor(FormUI.Ui_MainWindow):
     Form1Path=''
     Form2Path=''
     Message=''
+    Sheet1=''
+    Sheet2=''
+
+    def getConfig(self):
+        try:
+            config=cfgRead()
+            self.Sheet1=config['Sheet1']
+            self.Sheet2=config['Sheet2']
+        except:
+            self.Sheet1=Form1Name
+            self.Sheet2=Form2Name
 
 
     ''' 备份表 '''
@@ -358,9 +369,12 @@ class FormProcessor(FormUI.Ui_MainWindow):
     def init(self):
         imgName='./ChineseOil.png'
         png = QPixmap(imgName)
-        self.label.setPixmap(png)
+        self.Logo.setPixmap(png)
+        self.getConfig()
         self.Analyst_pushButton.setEnabled(False)
         self.Saveform_pushButton.setEnabled(False)
+        self.SheetName1.setText(self.Sheet1)
+        self.SheetName2.setText(self.Sheet2)
 
     def InfoShow(self,text):
         self.Message += str(text)
@@ -520,6 +534,17 @@ def MatchedCheck(form,line):
             return True
     else:
         return False
+
+def cfgRead():
+	with open('config.ini','r') as newfile:
+		return json.load(newfile)
+
+
+def cfgRecord(content):
+	#print (json.dumps(content))
+	with open('config.ini','w') as newfile:
+		newfile.write(json.dumps(content))
+	return
 
 class rewrite():
     """写表2！！将表1统计出的每个商品数量，写入表2"""

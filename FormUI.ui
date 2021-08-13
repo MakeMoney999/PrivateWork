@@ -96,13 +96,39 @@
      <string>保存结果</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="Logo">
     <property name="geometry">
      <rect>
       <x>40</x>
       <y>70</y>
       <width>335</width>
       <height>98</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="SheetName1">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>240</y>
+      <width>251</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="SheetName2">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>310</y>
+      <width>251</width>
+      <height>28</height>
      </rect>
     </property>
     <property name="text">
