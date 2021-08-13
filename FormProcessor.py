@@ -2,15 +2,13 @@ import os,sys,time,threading
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.styles import  PatternFill
-from PyQt5.Qt import *
-from PyQt5.QtGui import *
+from PyQt5.Qt import QFileDialog,QApplication,QMainWindow
+from PyQt5.QtGui import QPixmap
 import FormUI
 
 FileDirectory='D:\\PrivateWork\\'    #文件路径
-Form1Name=r'机关2021.3.15-2021.6.9from刘陈(1).xlsx'
-Form2Name=r'进项明细7.24（动态变动）.xlsx'
-Form1Path=FileDirectory+Form1Name
-Form2Path=FileDirectory+Form2Name
+Form1Name=r'3月-6月（机关汇总表）'
+Form2Name=r'Sheet1'
 blackwords=['盒']
 Cartridges={'CE411-413A':['CE411A','CE412A','CE413A'],'CF501-503A':['CF501A','CF502A','CF503A'],'CF401-403A':['CF401A','CF402A','CF403A']}
 SplitSign_And=[',','，',' ','；',';']
@@ -22,6 +20,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
     wb2 = Workbook()
     Result={}
     MatchCount=0
+    UnMatch=[]
     OriginData={}
     TargetData={}
     Form1Path=''
@@ -62,7 +61,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         return self.Result
 
     def CheckFormByLoop(self,form1,form2,MethodID):
-        for i1 in range(3, form1.max_row):  # 检索表1的每一行
+        for i1 in range(3, form1.max_row+1):  # 检索表1的每一行
             ''' 准备表1数据 '''
             if MatchedCheck(form1, i1) == True:
                 continue
@@ -115,7 +114,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
             if (self.OriginData['Brand'] in self.TargetData['RipName']) and (self.OriginData['Model'] in self.TargetData['RipName']) and (
                     self.OriginData['Name'] in self.TargetData['RipName']):
                 self.MatchCount += 1
-                form1.cell(row=row1, column=12).value = row2
+                form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                 return True
             else:
@@ -125,7 +124,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         # 如果'型号+名称'与库存名称能匹配成功
             if (self.OriginData['Model'] in self.TargetData['RipName']) and (self.OriginData['Name'] in self.TargetData['RipName']):
                 self.MatchCount += 1
-                form1.cell(row=row1, column=13).value = row2
+                form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                 return True
             else:
@@ -136,7 +135,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
             if (self.OriginData['Brand'] in self.TargetData['RipName']) and (self.OriginData['Model'] in self.TargetData['RipName']) and self.OriginData[
             'Brand'] != '' and self.OriginData['Model'] != '':
                 self.MatchCount += 1
-                form1.cell(row=row1, column=14).value = row2
+                form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                 return True
             else:
@@ -147,7 +146,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
             if ListIn(self.OriginData['Model_sub_and'], self.TargetData['RipName'], 'and', []) and (
                 (self.OriginData['Name'] in self.TargetData['RipName']) or (self.OriginData['Brand'] in self.TargetData['RipName'])):
                 self.MatchCount += 1
-                form1.cell(row=row1, column=15).value = row2
+                form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                 return True
             else:
@@ -158,7 +157,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
             if (ListIn(self.OriginData['Model_sub_or'], self.TargetData['Model'], 'or', blackwords) or ListIn(self.OriginData['Model_sub_or'],
             self.TargetData['RipName'], 'or', blackwords)) and (self.OriginData['Name'] in self.TargetData['RipName']):
                 self.MatchCount += 1
-                form1.cell(row=row1, column=16).value = row2
+                form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                 return True
             else:
@@ -176,7 +175,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
                 if (MatchKey != '') and (MatchKey in self.TargetData['Model']):
                     # print('MatchKey=',MatchKey,'form2Model=',form2_model)
                     self.MatchCount += 1
-                    form1.cell(row=row1, column=17).value = row2
+                    form1.cell(row=row1, column=11).value = row2
                     self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                     return True
                 else:
@@ -186,7 +185,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         # 只匹配名称+品牌
             if (self.OriginData['Name'] in self.TargetData['RipName']) and (self.OriginData['Brand'] in self.TargetData['RipName']):
                 self.MatchCount += 1
-                form1.cell(row=row1, column=18).value = row2
+                form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
                 return True
             else:
@@ -195,6 +194,17 @@ class FormProcessor(FormUI.Ui_MainWindow):
     def FormSave(self,wb,TargetFile):
         Path=TargetFile
         wb.save(Path)
+
+    def CheckUnmatchedData(self):
+        for i in range(3,self.Form1.max_row+1):
+            if self.Form1.cell(row=i, column=11).value==None:
+                self.UnMatch.append(i)
+            else:
+                self.Form1.cell(row=i, column=11).value = None
+        txt='匹配失败'+str(len(self.UnMatch))+'条'
+        self.InfoShow(txt)
+        print (self.UnMatch)
+        return self.UnMatch
 
     def CheckFormOnce(self,form1,form2):
         OriginData = {}
@@ -236,56 +246,56 @@ class FormProcessor(FormUI.Ui_MainWindow):
                 # 如果'型号'能匹配成功，则用'品牌+名称'匹配库存名称
                 if (OriginData['Model'] in form2_model) and (OriginData['Brand'] in form2_name) and (OriginData['Name'] in form2_name):  # 判断表1的型号与表2是否匹配
                     count += 1
-                    form1.cell(row=i1, column=11).value = i2
+                    # form1.cell(row=i1, column=11).value = i2
                     result[i1]=i2
                     break
 
                 # 如果'品牌+型号+名称'与库存名称能匹配成功
                 elif (OriginData['Brand'] in form2_name) and (OriginData['Model'] in form2_name) and (OriginData['Name'] in form2_name):
                     count += 1
-                    form1.cell(row=i1, column=12).value = i2
+                    # form1.cell(row=i1, column=12).value = i2
                     result[i1] = i2
                     break
 
                 # 如果'型号+名称'与库存名称能匹配成功
                 elif (OriginData['Model'] in form2_name) and (OriginData['Name'] in form2_name):
                     count += 1
-                    form1.cell(row=i1, column=13).value = i2
+                    # form1.cell(row=i1, column=13).value = i2
                     result[i1] = i2
                     break
 
                 # 如果'品牌+型号'与库存名称能匹配成功
                 elif (OriginData['Brand'] in form2_name) and (OriginData['Model'] in form2_name) and OriginData['Brand']!='' and OriginData['Model']!='' :
                     count += 1
-                    form1.cell(row=i1, column=14).value = i2
+                    # form1.cell(row=i1, column=14).value = i2
                     result[i1] = i2
                     break
 
                 # 拆分Model，进行组合匹配
                 elif ListIn(OriginData['Model_sub_and'],form2_name_rip,'and',[]) and ((OriginData['Name'] in form2_name_rip) or (OriginData['Brand'] in form2_name_rip)):
                     count += 1
-                    form1.cell(row=i1, column=16).value = i2
+                    # form1.cell(row=i1, column=16).value = i2
                     result[i1] = i2
                     break
 
                 # 拆分Model，进行模糊匹配
                 elif (ListIn(OriginData['Model_sub_or'],form2_model,'or',blackwords) or ListIn(OriginData['Model_sub_or'],form2_name_rip,'or',blackwords)) and (OriginData['Name'] in form2_name_rip):
                     count += 1
-                    form1.cell(row=i1, column=17).value = i2
+                    # form1.cell(row=i1, column=17).value = i2
                     result[i1] = i2
                     break
 
                 # 型号和品牌为空时，只匹配名称
                 elif OriginData['Name'] in form2_name_rip and OriginData['Model']=='' and OriginData['Brand']=='':
                     count += 1
-                    form1.cell(row=i1, column=18).value = i2
+                    # form1.cell(row=i1, column=18).value = i2
                     result[i1] = i2
                     break
 
                 # 只匹配名称+品牌
                 elif (OriginData['Name'] in form2_name_rip) and (OriginData['Brand'] in form2_name_rip):
                     count += 1
-                    form1.cell(row=i1, column=19).value = i2
+                    # form1.cell(row=i1, column=19).value = i2
                     result[i1] = i2
                     break
 
@@ -300,7 +310,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
                     if (MatchKey != '') and (MatchKey in form2_model):
                         # print('MatchKey=',MatchKey,'form2Model=',form2_model)
                         count += 1
-                        form1.cell(row=i1, column=15).value = i2
+                        # form1.cell(row=i1, column=15).value = i2
                         result[i1] = i2
                         break
 
@@ -349,6 +359,8 @@ class FormProcessor(FormUI.Ui_MainWindow):
         imgName='./ChineseOil.png'
         png = QPixmap(imgName)
         self.label.setPixmap(png)
+        self.Analyst_pushButton.setEnabled(False)
+        self.Saveform_pushButton.setEnabled(False)
 
     def InfoShow(self,text):
         self.Message += str(text)
@@ -359,7 +371,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         self.Loadform1_pushButton.clicked.connect(self.LoadForm1)
         self.Loadform2_pushButton.clicked.connect(self.LoadForm2)
         self.Saveform_pushButton.clicked.connect(self.SaveForm)
-        self.Analyst_pushButton.clicked.connect(self.Analyst)
+        self.Analyst_pushButton.clicked.connect(self.AnalystButtonClick)
 
 
     def LoadForm1(self):
@@ -369,9 +381,10 @@ class FormProcessor(FormUI.Ui_MainWindow):
             self.Loadform1_lineEdit.setText(Form1File[0])
             self.Form1Path=Form1File[0]
             self.wb1 = self.GetFile(self.Form1Path)
-            self.Form1=self.GetForm(self.wb1 , '3月-6月（机关汇总表）')
+            self.Form1=self.GetForm(self.wb1 , Form1Name)
             self.statusbar.showMessage("采购表加载成功")
             self.InfoShow("采购表加载成功")
+            self.Saveform_pushButton.setEnabled(False)
         except:
             self.statusbar.showMessage("采购表加载失败，请重新加载")
             self.InfoShow("采购表加载失败，请重新加载")
@@ -383,9 +396,12 @@ class FormProcessor(FormUI.Ui_MainWindow):
             self.Loadform2_lineEdit.setText(Form2File[0])
             self.Form2Path = Form2File[0]
             self.wb2 = self.GetFile(self.Form2Path)
-            self.Form2=self.GetForm(self.wb2 , 'Sheet1')
+            self.Form2=self.GetForm(self.wb2 , Form2Name)
             self.statusbar.showMessage("库存表加载成功")
             self.InfoShow("库存表加载成功")
+            if self.Loadform1_lineEdit!='':
+                self.Analyst_pushButton.setEnabled(True)
+                self.Saveform_pushButton.setEnabled(False)
         except:
             self.statusbar.showMessage("库存表加载失败，请重新加载")
             self.InfoShow("库存表加载失败，请重新加载")
@@ -424,31 +440,48 @@ class FormProcessor(FormUI.Ui_MainWindow):
             self.statusbar.showMessage("新表单保存失败，请重新保存")
             self.InfoShow("新表单保存失败，请重新保存")
 
-    def Analyst(self):
+    def AnalystButtonClick(self):
         self.Saveform_pushButton.setDisabled(True)
         self.Loadform1_pushButton.setDisabled(True)
         self.Loadform2_pushButton.setDisabled(True)
         self.Analyst_pushButton.setDisabled(True)
+        try:
+            self.Analyst()
+            # thread = threading.Thread(target=self.Analyst)
+            # thread.start()
+
+        except:
+            pass
+
+    def Analyst(self):
+        self.Result = {}
+        self.MatchCount = 0
+        self.OriginData = {}
+        self.TargetData = {}
         self.statusbar.showMessage("分析中，请稍后...")
         self.InfoShow("分析中，请稍后...")
         try:
-            thread=threading.Thread(target=self.CheckForm,args=(self.Form1,self.Form2))
-            # result=self.CheckForm(self.Form1, self.Form2)
+            result=self.CheckForm(self.Form1, self.Form2)
+            print(result)
             a=rewrite().main(self.Result,self.Form1,self.Form2)
-            for m in a: 
+            for m in a:
                 """打印需要手动写入的特殊输出结果"""
                 self.statusbar.showMessage(m)
                 self.InfoShow(m)
+            self.CheckUnmatchedData()
             self.statusbar.showMessage("分析成功，请保存文件")
             self.InfoShow("分析成功，请保存文件")
         except Exception as e:
             print (e)
             self.statusbar.showMessage("分析失败，请联系王阳")
             self.InfoShow("分析失败")
+
         self.Saveform_pushButton.setEnabled(True)
         self.Loadform1_pushButton.setEnabled(True)
         self.Loadform2_pushButton.setEnabled(True)
-        self.Analyst_pushButton.setEnabled(True)
+        self.Loadform1_lineEdit.clear()
+        self.Loadform2_lineEdit.clear()
+        # self.Analyst_pushButton.setEnabled(True)
 
 def SplitWord(content,symbols):
     result = []
