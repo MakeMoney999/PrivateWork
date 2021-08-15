@@ -214,7 +214,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
                 self.Form1.cell(row=i, column=11).value = None
         txt='匹配失败'+str(len(self.UnMatch))+'条'
         self.InfoShow(txt)
-        print (self.UnMatch)
+        #print (self.UnMatch)
         return self.UnMatch
 
     def CheckFormOnce(self,form1,form2):
@@ -475,14 +475,14 @@ class FormProcessor(FormUI.Ui_MainWindow):
         self.statusbar.showMessage("分析中，请稍后...")
         self.InfoShow("分析中，请稍后...")
         try:
-            result=self.CheckForm(self.Form1, self.Form2)
-            print(result)
-            a=rewrite().main(self.Result,self.Form1,self.Form2)
+            r=self.CheckForm(self.Form1, self.Form2)
+            #print(r)
+            Unmatched=self.CheckUnmatchedData()
+            a=rewrite().main(r,self.Form1,self.Form2,Unmatched) #返回需要手动核实的内容
             for m in a:
                 """打印需要手动写入的特殊输出结果"""
                 self.statusbar.showMessage(m)
                 self.InfoShow(m)
-            self.CheckUnmatchedData()
             self.statusbar.showMessage("分析成功，请保存文件")
             self.InfoShow("分析成功，请保存文件")
         except Exception as e:
@@ -617,11 +617,11 @@ class rewrite():
         #print ("22222222,things_count")
         #print ("form2_count_a",form2_count)
         #print (type(form2_count))
-        if form2_count != type(1): #如果是空就置位0
+        if type(form2_count) != type(1): #如果是空就置位0
             #print("form2_count",row,type(form2_count),form2_count)
             form2_count = 0
 
-        if things_count != type(1):
+        if type(things_count) != type(1):
             #print("form2_count",row,type(things_count),things_count)
             things_count = 0
         
@@ -647,16 +647,24 @@ class rewrite():
     #     return
 
     def rewrite_Form1(self,form1,form2,row_form1,row_form2):#将表2的名称复写进表1
-        red_fill = PatternFill("solid", fgColor="FF0000")
+        red_fill = PatternFill("solid", fgColor="FF0000") #标红
         form1.cell(row=row_form1, column=5).value=form2.cell(row=row_form2, column=1).value  #表2的名称复写进表1
         form1.cell(row=row_form1, column=6).value=form2.cell(row=row_form2, column=3).value  #表2的单位复写进表1
-        form1.cell(row=row_form1, column=5).fill=red_fill  #给复写的名称设置一个颜色
-        form1.cell(row=row_form1, column=6).fill=red_fill  #给复写的单位设置一个颜色
+        # form1.cell(row=row_form1, column=5).fill=red_fill  #给复写的名称设置一个颜色
+        # form1.cell(row=row_form1, column=6).fill=red_fill  #给复写的单位设置一个颜色
         return 
 
+    def write_red_line(self,form,data): #data格式是表1行号的数组
+        red_fill = PatternFill("solid", fgColor="FF0000")
+        for c in data :
+            form.cell(row=c, column=4).fill=red_fill
+            form.cell(row=c, column=5).fill=red_fill
+            form.cell(row=c, column=6).fill=red_fill
+        return
 
 
-    def main(self,matched_result,form1,form2): 
+
+    def main(self,matched_result,form1,form2,UnmatchedData): 
         Message_arr=[]
 
         #############开始全局计算特殊商品的总数量，并复写form2
@@ -699,6 +707,9 @@ class rewrite():
                 form2.cell(row=form2_row, column=10).value= dian_chi_5
             if form1_res[0] == "三代电池" and form1_res[1] == "7号":
                 form2.cell(row=form2_row, column=10).value= dian_chi_7
+
+        self.write_red_line(form1,UnmatchedData)
+
         return Message_arr
 
 def RunFormProcessUI():
