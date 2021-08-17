@@ -14,6 +14,7 @@ Cartridges={'CE411-413A':['CE411A','CE412A','CE413A'],'CF501-503A':['CF501A','CF
 SplitSign_And=[',','，',' ','；',';']
 SplitSign_Or=['/']
 Brand_OnlyCheckName=['迪欧']
+MappingName={'长尾夹':'长尾票夹','转换头':'转接头'}
 
 class FormProcessor(FormUI.Ui_MainWindow):
     wb1 = Workbook()
@@ -28,16 +29,28 @@ class FormProcessor(FormUI.Ui_MainWindow):
     Message=''
     Sheet1=''
     Sheet2=''
+    mapping={}
 
     def getConfig(self):
         try:
-            config=cfgRead()
-            self.Sheet1=config['Sheet1']
-            self.Sheet2=config['Sheet2']
-        except:
+            config=CFGread('config.txt')
+            # config=cfgRead('config.ini')
+            self.Sheet1=config[0]
+            self.Sheet2=config[1]
+            self.InfoShow('表名配置读取成功')
+        except Exception as e:
             self.Sheet1=Form1Name
             self.Sheet2=Form2Name
-
+            self.InfoShow('表名配置读取失败，启用默认配置')
+            print(e)
+        try:
+            self.mapping = CovertMap(CFGread('mapping.txt'))
+            self.InfoShow('替换名称配置读取成功')
+            # print('mapping='+str(self.mapping))
+        except:
+            self.mapping = MappingName
+            self.InfoShow('替换名称配置读取失败，启用默认配置')
+        print(self.mapping)
 
     ''' 备份表 '''
     def BackupFile(self,OriginFile,TargetFile):
@@ -85,6 +98,13 @@ class FormProcessor(FormUI.Ui_MainWindow):
             else:
                 self.OriginData['Model'] = ''
             self.OriginData['Name'] = str(form1.cell(row=i1, column=5).value).upper()
+            for name in self.mapping:
+                if name==self.OriginData['Name']:
+                    print(self.mapping[name] + ' instead of ' + self.OriginData['Name'])
+                    self.OriginData['MappingName']=self.mapping[name]
+                    break
+            else:
+                self.OriginData['MappingName']='None'
             self.OriginData['Model_sub_and'] = SplitWord(self.OriginData['Model'], SplitSign_And)
             self.OriginData['Model_sub_or'] = SplitWord(self.OriginData['Model'], SplitSign_Or)
 
@@ -112,7 +132,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         if MethodID == 1:
         # 如果'型号'能匹配成功，则用'品牌+名称'匹配库存名称
             if (self.OriginData['Model'] in self.TargetData['Model']) and (self.OriginData['Brand'] in self.TargetData['RipName']) and (
-                    self.OriginData['Name'] in self.TargetData['RipName']):  # 判断表1的型号与表2是否匹配
+                    self.OriginData['Name'] in self.TargetData['RipName'] or (self.OriginData['MappingName'] in self.TargetData['RipName'] and self.OriginData['MappingName']!='None')):  # 判断表1的型号与表2是否匹配
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
@@ -123,7 +143,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         if MethodID == 2:
             # 如果'品牌+型号+名称'与库存名称能匹配成功
             if (self.OriginData['Brand'] in self.TargetData['RipName']) and (self.OriginData['Model'] in self.TargetData['RipName']) and (
-                    self.OriginData['Name'] in self.TargetData['RipName']):
+                    self.OriginData['Name'] in self.TargetData['RipName'] or (self.OriginData['MappingName'] in self.TargetData['RipName'] and self.OriginData['MappingName']!='None')):
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
@@ -133,7 +153,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
 
         if MethodID == 3:
         # 如果'型号+名称'与库存名称能匹配成功
-            if (self.OriginData['Model'] in self.TargetData['RipName']) and (self.OriginData['Name'] in self.TargetData['RipName']):
+            if (self.OriginData['Model'] in self.TargetData['RipName']) and (self.OriginData['Name'] in self.TargetData['RipName'] or (self.OriginData['MappingName'] in self.TargetData['RipName'] and self.OriginData['MappingName']!='None')):
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
@@ -155,7 +175,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         if MethodID == 5:
         # 拆分Model，进行组合匹配
             if ListIn(self.OriginData['Model_sub_and'], self.TargetData['RipName'], 'and', []) and (
-                (self.OriginData['Name'] in self.TargetData['RipName']) or (self.OriginData['Brand'] in self.TargetData['RipName'])):
+                (self.OriginData['Name'] in self.TargetData['RipName'] or (self.OriginData['MappingName'] in self.TargetData['RipName'] and self.OriginData['MappingName']!='None')) or (self.OriginData['Brand'] in self.TargetData['RipName'])):
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
@@ -166,7 +186,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         if MethodID == 6:
         # 拆分Model，进行模糊匹配
             if (ListIn(self.OriginData['Model_sub_or'], self.TargetData['Model'], 'or', blackwords) or ListIn(self.OriginData['Model_sub_or'],
-            self.TargetData['RipName'], 'or', blackwords)) and (self.OriginData['Name'] in self.TargetData['RipName']):
+            self.TargetData['RipName'], 'or', blackwords)) and (self.OriginData['Name'] in self.TargetData['RipName'] or (self.OriginData['MappingName'] in self.TargetData['RipName'] and self.OriginData['MappingName']!='None')):
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
@@ -194,7 +214,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
 
         if MethodID == 8:
         # 只匹配名称+品牌
-            if (self.OriginData['Name'] in self.TargetData['RipName']) and (self.OriginData['Brand'] in self.TargetData['RipName']):
+            if (self.OriginData['Name'] in self.TargetData['RipName'] or (self.OriginData['MappingName'] in self.TargetData['RipName'] and self.OriginData['MappingName']!='None')) and (self.OriginData['Brand'] in self.TargetData['RipName']):
                 self.MatchCount += 1
                 form1.cell(row=row1, column=11).value = row2
                 self.Result[self.OriginData['Name'],self.OriginData['Model'],row1] = row2
@@ -214,7 +234,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
                 self.Form1.cell(row=i, column=11).value = None
         txt='匹配失败'+str(len(self.UnMatch))+'条'
         self.InfoShow(txt)
-        #print (self.UnMatch)
+        print (self.UnMatch)
         return self.UnMatch
 
     def CheckFormOnce(self,form1,form2):
@@ -367,7 +387,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
         return UnitList
 
     def init(self):
-        imgName='./ChineseOil.png'
+        imgName='./ggzx.png'
         png = QPixmap(imgName)
         self.Logo.setPixmap(png)
         self.getConfig()
@@ -395,7 +415,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
             self.Loadform1_lineEdit.setText(Form1File[0])
             self.Form1Path=Form1File[0]
             self.wb1 = self.GetFile(self.Form1Path)
-            self.Form1=self.GetForm(self.wb1 , Form1Name)
+            self.Form1=self.GetForm(self.wb1 , self.Sheet1)
             self.statusbar.showMessage("采购表加载成功")
             self.InfoShow("采购表加载成功")
             self.Saveform_pushButton.setEnabled(False)
@@ -410,7 +430,7 @@ class FormProcessor(FormUI.Ui_MainWindow):
             self.Loadform2_lineEdit.setText(Form2File[0])
             self.Form2Path = Form2File[0]
             self.wb2 = self.GetFile(self.Form2Path)
-            self.Form2=self.GetForm(self.wb2 , Form2Name)
+            self.Form2=self.GetForm(self.wb2 , self.Sheet2)
             self.statusbar.showMessage("库存表加载成功")
             self.InfoShow("库存表加载成功")
             if self.Loadform1_lineEdit!='':
@@ -475,19 +495,19 @@ class FormProcessor(FormUI.Ui_MainWindow):
         self.statusbar.showMessage("分析中，请稍后...")
         self.InfoShow("分析中，请稍后...")
         try:
-            r=self.CheckForm(self.Form1, self.Form2)
-            #print(r)
-            Unmatched=self.CheckUnmatchedData()
-            a=rewrite().main(r,self.Form1,self.Form2,Unmatched) #返回需要手动核实的内容
+            result=self.CheckForm(self.Form1, self.Form2)
+            print(result)
+            a=rewrite().main(self.Result,self.Form1,self.Form2)
             for m in a:
                 """打印需要手动写入的特殊输出结果"""
                 self.statusbar.showMessage(m)
                 self.InfoShow(m)
+            self.CheckUnmatchedData()
             self.statusbar.showMessage("分析成功，请保存文件")
             self.InfoShow("分析成功，请保存文件")
         except Exception as e:
             print (e)
-            self.statusbar.showMessage("分析失败，请联系王阳")
+            self.statusbar.showMessage("分析失败，请联系制作者")
             self.InfoShow("分析失败")
 
         self.Saveform_pushButton.setEnabled(True)
@@ -535,9 +555,40 @@ def MatchedCheck(form,line):
     else:
         return False
 
-def cfgRead():
-	with open('config.ini','r') as newfile:
-		return json.load(newfile)
+def cfgRead(file):
+	with open(file,'r') as newfile:
+         return json.load(newfile)
+
+def CFGread(file):
+    f=open(file,'r',encoding='utf-8')
+    content=[]
+    for line in f.readlines():
+        if line[-1:]=='\n':
+            content.append(line[:-1])
+        else:
+            content.append(line)
+    print (content)
+    f.close()
+    return content
+
+def CovertMap(map):
+    result={}
+    mode=1
+    key=''
+    value=''
+    for line in map:
+        mode = 1
+        key=''
+        value=''
+        for char in line:
+            if char!=',' and mode==1:
+                key+=char
+            elif char!=',' and mode==2:
+                value+=char
+            elif char==',':
+                mode=2
+        result[key]=value
+    return result
 
 
 def cfgRecord(content):
@@ -617,11 +668,11 @@ class rewrite():
         #print ("22222222,things_count")
         #print ("form2_count_a",form2_count)
         #print (type(form2_count))
-        if type(form2_count) != type(1): #如果是空就置位0
+        if form2_count != type(1): #如果是空就置位0
             #print("form2_count",row,type(form2_count),form2_count)
             form2_count = 0
 
-        if type(things_count) != type(1):
+        if things_count != type(1):
             #print("form2_count",row,type(things_count),things_count)
             things_count = 0
         
@@ -647,24 +698,16 @@ class rewrite():
     #     return
 
     def rewrite_Form1(self,form1,form2,row_form1,row_form2):#将表2的名称复写进表1
-        red_fill = PatternFill("solid", fgColor="FF0000") #标红
+        red_fill = PatternFill("solid", fgColor="FF0000")
         form1.cell(row=row_form1, column=5).value=form2.cell(row=row_form2, column=1).value  #表2的名称复写进表1
         form1.cell(row=row_form1, column=6).value=form2.cell(row=row_form2, column=3).value  #表2的单位复写进表1
-        # form1.cell(row=row_form1, column=5).fill=red_fill  #给复写的名称设置一个颜色
-        # form1.cell(row=row_form1, column=6).fill=red_fill  #给复写的单位设置一个颜色
+        form1.cell(row=row_form1, column=5).fill=red_fill  #给复写的名称设置一个颜色
+        form1.cell(row=row_form1, column=6).fill=red_fill  #给复写的单位设置一个颜色
         return 
 
-    def write_red_line(self,form,data): #data格式是表1行号的数组
-        red_fill = PatternFill("solid", fgColor="FF0000")
-        for c in data :
-            form.cell(row=c, column=4).fill=red_fill
-            form.cell(row=c, column=5).fill=red_fill
-            form.cell(row=c, column=6).fill=red_fill
-        return
 
 
-
-    def main(self,matched_result,form1,form2,UnmatchedData): 
+    def main(self,matched_result,form1,form2): 
         Message_arr=[]
 
         #############开始全局计算特殊商品的总数量，并复写form2
@@ -707,9 +750,6 @@ class rewrite():
                 form2.cell(row=form2_row, column=10).value= dian_chi_5
             if form1_res[0] == "三代电池" and form1_res[1] == "7号":
                 form2.cell(row=form2_row, column=10).value= dian_chi_7
-
-        self.write_red_line(form1,UnmatchedData)
-
         return Message_arr
 
 def RunFormProcessUI():
@@ -720,7 +760,7 @@ def RunFormProcessUI():
 
     FP.setupUi(Window)
     FP.init()
-    Window.setWindowTitle('中国石油采购表单管理器')
+    Window.setWindowTitle('库存表管理工具 v1.0')
     Window.show()
     FP.listenEvent()
     sys.exit(app.exec_())
