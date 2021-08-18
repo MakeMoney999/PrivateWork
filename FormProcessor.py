@@ -30,6 +30,8 @@ class FormProcessor(FormUI.Ui_MainWindow):
     Sheet1=''
     Sheet2=''
     mapping={}
+    Switch1=False
+    Switch2=False
 
     def getConfig(self):
         try:
@@ -410,38 +412,42 @@ class FormProcessor(FormUI.Ui_MainWindow):
 
     def LoadForm1(self):
         try:
-            Form1File=QFileDialog.getOpenFileName()
+            Form1File = QFileDialog.getOpenFileName()
             print(Form1File)
             self.Loadform1_lineEdit.setText(Form1File[0])
-            self.Form1Path=Form1File[0]
+            self.Form1Path = Form1File[0]
             self.wb1 = self.GetFile(self.Form1Path)
-            self.Form1=self.GetForm(self.wb1 , self.Sheet1)
+            self.Form1 = self.GetForm(self.wb1 , self.Sheet1)
             self.statusbar.showMessage("采购表加载成功")
             self.InfoShow("采购表加载成功")
             self.Saveform_pushButton.setEnabled(False)
+            self.Switch1 = True
         except:
             self.statusbar.showMessage("采购表加载失败，请重新加载")
             self.InfoShow("采购表加载失败，请重新加载")
+            self.Switch1 = False
 
     def LoadForm2(self):
         try:
-            Form2File=QFileDialog.getOpenFileName()
+            Form2File = QFileDialog.getOpenFileName()
             print(Form2File)
             self.Loadform2_lineEdit.setText(Form2File[0])
             self.Form2Path = Form2File[0]
             self.wb2 = self.GetFile(self.Form2Path)
-            self.Form2=self.GetForm(self.wb2 , self.Sheet2)
+            self.Form2 = self.GetForm(self.wb2 , self.Sheet2)
             self.statusbar.showMessage("库存表加载成功")
             self.InfoShow("库存表加载成功")
+            self.Switch2 = True
             if self.Loadform1_lineEdit!='':
                 self.Analyst_pushButton.setEnabled(True)
                 self.Saveform_pushButton.setEnabled(False)
         except:
             self.statusbar.showMessage("库存表加载失败，请重新加载")
             self.InfoShow("库存表加载失败，请重新加载")
+            self.Switch2 = False
 
     def SaveForm(self):
-        if self.Form1Path=='' or self.Form2Path=='':
+        if self.Form1Path == '' or self.Form2Path == '':
             return
         try:
             NewFormDir = QFileDialog.getExistingDirectory()
@@ -475,6 +481,10 @@ class FormProcessor(FormUI.Ui_MainWindow):
             self.InfoShow("新表单保存失败，请重新保存")
 
     def AnalystButtonClick(self):
+        if self.Switch1==False or self.Switch2==False:
+            self.InfoShow('表格尚未加载成功，请检查...')
+            self.statusbar.showMessage('表格尚未加载成功，请检查...')
+            return
         self.Saveform_pushButton.setDisabled(True)
         self.Loadform1_pushButton.setDisabled(True)
         self.Loadform2_pushButton.setDisabled(True)
