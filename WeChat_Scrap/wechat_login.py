@@ -1,20 +1,24 @@
 from mitmproxy.http import flow
+import mitmproxy
 import json
 
 
 res={}
 
-class wechat_app_login():
+class check_connect():
+    def request(self,flow):
+        if "www.jcgame.net" in flow.request.url:
+            print ("设备连接成功")
 
-    def clientconnect(self, layer: mitmproxy.proxy.protocol.Layer):
-        print ("设备连接成功")
+
+class wechat_app_login():
 
     def __init__(self,domain):
         self.domain=domain 
         self.url=domain+"/oauth/v2/wechat/mini-program/authorization-code/login"
 
     def request(self,flow):
-        print (self.url)
+        #print (self.url)
         if self.url in flow.request.url:
             requestbody=flow.request.get_content()
             requestbody=json.loads(requestbody)
@@ -47,5 +51,6 @@ class wechat_app_login():
     # flow.response = flow.response.make(404)
 
 addons = [
+    check_connect(),
     wechat_app_login("https://oauth.marykayintouch.com.cn")
 ]
