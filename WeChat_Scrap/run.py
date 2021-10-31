@@ -1,5 +1,10 @@
 import os
 import socket
+import time
+import subprocess
+
+command = "mitmdump -q -s wechat_login.py"
+port="8080"
 
 def get_host_ip():
     try:
@@ -11,16 +16,21 @@ def get_host_ip():
 
     return ip
 
+def run_mitmproxy(command):
+	os.system(command)
+
+
 
 
 def main():
 	ip=get_host_ip()
-	port="8080"
-	cmd = "mitmdump -q -s wechat_login.py"
 	print ("代理服务器已启动")
 	print ("请配置wifi代理模式,ip:"+ip,"端口号:"+port)
 	print ("配置完成后请打开浏览器访问www.jcgame.net进行链接测试")
-	output=os.system(cmd)
+	run_mitmproxy(command)
+	
+
+
 
 if __name__ == '__main__':
 	main()

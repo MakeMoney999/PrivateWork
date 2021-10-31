@@ -1,17 +1,23 @@
 from mitmproxy.http import flow
 import mitmproxy
 import json
+import os
+import socket
+import time
+import subprocess
 
 
-res={}
 
-class check_connect():
-    def request(self,flow):
-        if "www.jcgame.net" in flow.request.url:
-            print ("设备连接成功")
+
+
 
 
 class wechat_app_login():
+
+    def client_connected(self, client: mitmproxy.connection.Client):
+        print ("客户端链接成功")
+        a=1
+        return a 
 
     def __init__(self,domain):
         self.domain=domain 
@@ -26,31 +32,13 @@ class wechat_app_login():
             print(flow.request.get_text())
 
     def response(self,flow):
-        global res
         if self.url in flow.request.url:
             print (flow.response.content)
             if flow.response.status_code == 200:
-                res=flow.response.content
+                res=flow.response.content  #login的返回
+                start_Scrape(res[])#开始执行爬虫相关数据
+
         
-    # 状态码
-    # print(flow.response.status_code)
-
-    # 返回内容，已解码
-    # print(flow.response.text)
-
-    # 返回内容，Bytes类型
-    # print(flow.response.content)
-
-    # 取得响应的文本
-    # print(flow.response.get_text())
-
-    # 修改响应的文本
-    # flow.response.set_text('123')
-
-    # 返回404
-    # flow.response = flow.response.make(404)
-
 addons = [
-    check_connect(),
     wechat_app_login("https://oauth.marykayintouch.com.cn")
 ]
